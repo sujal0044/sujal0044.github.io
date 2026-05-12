@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, useScroll, AnimatePresence } from 'framer-motion';
 import { Github, Instagram, Volume2, VolumeX, Mail, Code, Terminal, Layers, ExternalLink } from 'lucide-react';
 
-// --- 1. OPTIMIZED UTILITIES & 3D INTERACTIVITY ---
-
-// Production-ready cinematic images (abstract/tech only)
+// --- PRODUCTION IMAGES ---
 const abstractCoreImg = "https://images.unsplash.com/photo-1614729939124-03290b56c9ce?q=80&w=2500&auto=format&fit=crop";
 const mindsetBg = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2000&auto=format&fit=crop";
 const worksBg = "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2000&auto=format&fit=crop";
 const contactBg = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop";
 
-// --- 3D TILT WRAPPER COMPONENT ---
+// --- 3D TILT WRAPPER ---
 const TiltCard = ({ children, className }) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  // Reduced angle for extreme professional luxury
   const rotateX = useTransform(y, [-100, 100], [6, -6]); 
   const rotateY = useTransform(x, [-100, 100], [-6, 6]);
 
@@ -38,8 +35,7 @@ const TiltCard = ({ children, className }) => {
   );
 };
 
-// --- OPTIMIZED NEURAL NETWORK CANVAS BACKGROUND ---
-// Performance optimized: reduced particle count on mobile screens.
+// --- NEURAL NETWORK CANVAS ---
 const NeuralNetwork = () => {
   const canvasRef = useRef(null);
 
@@ -52,9 +48,8 @@ const NeuralNetwork = () => {
     canvas.height = height;
 
     let particles = [];
-    // Mobile Performance Check
     const isMobile = width < 768;
-    const particleCount = isMobile ? 20 : 70; // Crucial Performance Fix
+    const particleCount = isMobile ? 20 : 60; 
     const connectionDistance = 150;
     let mouse = { x: -1000, y: -1000 };
 
@@ -70,7 +65,7 @@ const NeuralNetwork = () => {
 
     const handleMouseMove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
     const handleMouseOut = () => { mouse.x = -1000; mouse.y = -1000; };
-    if (!isMobile) { // Disable mouse connection logic on mobile to save performance
+    if (!isMobile) { 
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseout', handleMouseOut);
     }
@@ -104,7 +99,6 @@ const NeuralNetwork = () => {
           }
         }
         
-        // Mouse connection logic disabled on mobile
         if (!isMobile) { 
             let mouseDist = Math.sqrt(Math.pow(p.x - mouse.x, 2) + Math.pow(p.y - mouse.y, 2));
             if (mouseDist < 200) {
@@ -139,7 +133,7 @@ const NeuralNetwork = () => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-60" />;
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-50 mix-blend-screen" />;
 };
 
 
@@ -149,39 +143,34 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(true);
   const [isDesktop, setIsDesktop] = useState(true);
   const audioRef = useRef(null);
+  
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 1000], [0, 300]); // Parallax effect
 
-  // --- UPGRADED MAGNETIC CURSOR PHYSICS ---
+  // CURSOR PHYSICS
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
-  // Super-fast spring for the tiny dot core
   const dotX = useSpring(mouseX, { stiffness: 1500, damping: 40 });
   const dotY = useSpring(mouseY, { stiffness: 1500, damping: 40 });
-  // Slower, smooth trailing spring for the outer ring
   const ringX = useSpring(mouseX, { stiffness: 200, damping: 25 });
   const ringY = useSpring(mouseY, { stiffness: 200, damping: 25 });
 
   useEffect(() => {
-    // Determine if on desktop/pointer device for custom cursor
     const mql = window.matchMedia('(pointer: fine)');
     const handleDeviceChange = (e) => setIsDesktop(e.matches);
-    setIsDesktop(mql.matches); // initial check
+    setIsDesktop(mql.matches); 
     mql.addEventListener('change', handleDeviceChange);
     
-    // Mouse movement logic (disabled on mobile)
     const handleMouseMove = (e) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
     };
     
-    if (mql.matches) {
-       window.addEventListener('mousemove', handleMouseMove);
-    }
+    if (mql.matches) window.addEventListener('mousemove', handleMouseMove);
     
     return () => {
       mql.removeEventListener('change', handleDeviceChange);
-      if (mql.matches) {
-        window.removeEventListener('mousemove', handleMouseMove);
-      }
+      if (mql.matches) window.removeEventListener('mousemove', handleMouseMove);
     };
   }, [mouseX, mouseY]);
 
@@ -202,7 +191,7 @@ export default function App() {
   return (
     <div className={`bg-[#050505] text-white min-h-screen font-sans overflow-x-hidden selection:bg-[#ff6a00] selection:text-white relative ${isDesktop ? 'cursor-none' : ''}`}>
       
-      {/* 1. PROFESSIONAL CURSOR (DESKTOP ONLY) */}
+      {/* CURSOR */}
       {isDesktop && (
         <>
           <motion.div 
@@ -218,7 +207,7 @@ export default function App() {
 
       <audio ref={audioRef} loop src="https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=cinematic-time-lapse-115672.mp3" />
 
-      {/* 2. PRELOADER */}
+      {/* PRELOADER */}
       <AnimatePresence>
         {loading && (
           <motion.div 
@@ -242,7 +231,7 @@ export default function App() {
         <>
           <NeuralNetwork />
 
-          {/* 3. NAVIGATION */}
+          {/* NAVIGATION */}
           <nav className="fixed top-0 left-0 w-full p-6 md:p-10 flex justify-between items-center z-50 pointer-events-none">
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="font-bold text-xl tracking-tighter pointer-events-auto cursor-none">
               SUJAL<span className="text-[#ff6a00]">.</span>
@@ -253,36 +242,49 @@ export default function App() {
             </motion.button>
           </nav>
 
-          {/* 4. HERO SECTION */}
+          {/* 1. UPGRADED HERO SECTION */}
           <section className="relative min-h-screen flex items-center justify-center pt-20 px-6 overflow-hidden">
-            <div className="absolute inset-0 z-0 flex items-center justify-center">
+            
+            <motion.div style={{ y: heroY }} className="absolute inset-0 z-0 flex items-center justify-center">
+               {/* Slow Pan & Scale Cinematic Image */}
                <motion.img 
                  src={abstractCoreImg}
                  alt="AI Core" 
-                 initial={{ opacity: 0, filter: "blur(40px)", scale: 1.2 }} animate={{ opacity: 0.15, filter: "blur(8px)", scale: 1 }} transition={{ duration: 4, ease: "easeOut" }}
-                 className="w-full h-full object-cover mix-blend-screen"
+                 initial={{ opacity: 0, filter: "blur(40px)", scale: 1.2 }} 
+                 animate={{ opacity: 0.15, filter: "blur(4px)", scale: [1.2, 1.3, 1.2], x: [0, 30, 0], y: [0, -20, 0] }} 
+                 transition={{ opacity: { duration: 4 }, scale: { duration: 40, repeat: Infinity, ease: "linear" }, x: { duration: 40, repeat: Infinity, ease: "linear" }, y: { duration: 40, repeat: Infinity, ease: "linear" } }}
+                 className="w-full h-[120%] object-cover mix-blend-screen"
                />
                <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/40 via-[#050505]/80 to-[#050505]"></div>
-            </div>
+               
+               {/* Fluid Animated Blur Orbs */}
+               <motion.div 
+                 animate={{ x: [-100, 100, -100], y: [-50, 50, -50], scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
+                 className="absolute top-1/3 left-1/4 w-[40vw] h-[40vw] bg-[#ff6a00]/20 rounded-full blur-[120px] mix-blend-screen pointer-events-none"
+               />
+               <motion.div 
+                 animate={{ x: [100, -100, 100], y: [50, -50, 50], scale: [1.2, 1, 1.2] }} transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
+                 className="absolute bottom-1/3 right-1/4 w-[50vw] h-[50vw] bg-yellow-600/10 rounded-full blur-[150px] mix-blend-screen pointer-events-none"
+               />
+            </motion.div>
 
-            <div className="relative z-10 text-center max-w-5xl">
-               <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="text-[#ff6a00] uppercase tracking-widest text-sm font-bold mb-6">
+            <div className="relative z-10 text-center max-w-5xl mt-10">
+               <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="text-[#ff6a00] uppercase tracking-widest text-sm font-bold mb-8">
                  Creative Technologist • AI Enthusiast
                </motion.div>
                <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter mb-8 leading-none">
-                 BUILDING <br /> THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6a00] to-yellow-600 drop-shadow-[0_0_30px_rgba(255,106,0,0.2)]">FUTURE.</span>
+                 BUILDING <br /> THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6a00] to-yellow-500 drop-shadow-[0_0_30px_rgba(255,106,0,0.2)]">FUTURE.</span>
                </motion.h1>
-               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3 }} className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed">
-                 Sujal Patel is a modern creative developer pursuing a Master’s degree in Computer Science in London. Blending algorithms, AI, motion, and modern UI design into high-end digital experiences.
+               <motion.p initial={{ opacity: 0, filter: "blur(10px)" }} animate={{ opacity: 1, filter: "blur(0px)" }} transition={{ delay: 1.3, duration: 1.5 }} className="text-gray-300 text-lg md:text-2xl max-w-3xl mx-auto font-light leading-relaxed">
+                 I am Sujal Patel. A creative technologist and AI architect based in London. I don't just write code—I engineer intelligent digital ecosystems. <span className="text-white font-semibold">Welcome to my operational cortex.</span>
                </motion.p>
             </div>
           </section>
 
           <div className="max-w-7xl mx-auto px-6 space-y-40 pb-40 relative z-10">
             
-            {/* 5. UPGRADED MINDSET SECTION */}
+            {/* 2. THE MINDSET SECTION */}
             <section className="pt-20 relative">
-              {/* Scroll Revealed Background Image (Unblur Parallax) */}
               <motion.img 
                 src={mindsetBg}
                 initial={{ opacity: 0, filter: "blur(20px)" }} whileInView={{ opacity: 0.08, filter: "blur(5px)" }} transition={{ duration: 2 }} viewport={{ once: false, margin: "-100px" }}
@@ -301,7 +303,7 @@ export default function App() {
               </TiltCard>
             </section>
 
-            {/* 6. TECHNICAL ARSENAL */}
+            {/* 3. TECHNICAL ARSENAL */}
             <section>
                <h2 className="text-3xl font-bold mb-12 flex items-center gap-4"><Code className="text-[#ff6a00]" /> Technical Arsenal</h2>
                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -320,9 +322,8 @@ export default function App() {
                </div>
             </section>
 
-            {/* 7. SELECTED WORKS / PROJECTS (Specific names) */}
+            {/* 4. SELECTED WORKS */}
             <section className="relative">
-              {/* Scroll Revealed Background Image (Unblur Parallax) */}
               <motion.img 
                 src={worksBg}
                 initial={{ opacity: 0, filter: "blur(20px)" }} whileInView={{ opacity: 0.05, filter: "blur(3px)" }} transition={{ duration: 2 }} viewport={{ once: false }}
@@ -350,7 +351,7 @@ export default function App() {
               </div>
             </section>
 
-            {/* 8. OPERATIONAL EXPERIENCE */}
+            {/* 5. EXPERIENCE */}
             <section>
               <h2 className="text-3xl font-bold mb-12 flex items-center gap-4"><Terminal className="text-[#ff6a00]" /> Operational Experience</h2>
               <div className="space-y-6">
@@ -369,7 +370,7 @@ export default function App() {
               </div>
             </section>
 
-            {/* 9. STATS & CERTIFICATIONS */}
+            {/* 6. STATS & CERTIFICATIONS */}
             <section className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                {[
                  { num: "3+", label: "AI/ML Certifications" },
@@ -386,9 +387,8 @@ export default function App() {
                ))}
             </section>
 
-            {/* 10. UPGRADED CONTACT SECTION (The Digital Portal) */}
+            {/* 7. CONTACT SECTION */}
             <section className="text-center pt-20 relative">
-               {/* Scroll Revealed Contact Background (Unblur Parallax) */}
                <motion.img 
                 src={contactBg}
                 initial={{ opacity: 0, filter: "blur(30px)" }} whileInView={{ opacity: 0.15, filter: "blur(0px)" }} transition={{ duration: 3 }} viewport={{ once: false }}
