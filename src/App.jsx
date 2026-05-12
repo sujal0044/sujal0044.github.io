@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, useScroll, AnimatePresence } from 'framer-motion';
 import { Github, Instagram, Volume2, VolumeX, Mail, Code, Terminal, Layers, ExternalLink } from 'lucide-react';
 
-// --- PRODUCTION IMAGES ---
+// --- PRODUCTION IMAGES (Optimized for Scroll Parallax) ---
 const abstractCoreImg = "https://images.unsplash.com/photo-1614729939124-03290b56c9ce?q=80&w=2500&auto=format&fit=crop";
 const mindsetBg = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2000&auto=format&fit=crop";
 const worksBg = "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2000&auto=format&fit=crop";
@@ -35,109 +35,65 @@ const TiltCard = ({ children, className }) => {
   );
 };
 
-// --- NEURAL NETWORK CANVAS ---
-const NeuralNetwork = () => {
-  const canvasRef = useRef(null);
+// --- THE CORE POWER-UP (CUSTOM SVG PRELOADER) ---
+const ChipPreloader = () => {
+  const draw = {
+    hidden: { pathLength: 0, opacity: 0 },
+    visible: (i) => ({
+      pathLength: 1,
+      opacity: 1,
+      transition: { pathLength: { delay: i * 0.2, type: "spring", duration: 2, bounce: 0 }, opacity: { delay: i * 0.2, duration: 0.2 } }
+    })
+  };
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-
-    let particles = [];
-    const isMobile = width < 768;
-    const particleCount = isMobile ? 20 : 60; 
-    const connectionDistance = 150;
-    let mouse = { x: -1000, y: -1000 };
-
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        radius: Math.random() * 1.5 + 0.5
-      });
-    }
-
-    const handleMouseMove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
-    const handleMouseOut = () => { mouse.x = -1000; mouse.y = -1000; };
-    if (!isMobile) { 
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseout', handleMouseOut);
-    }
-
-    const animate = () => {
-      ctx.clearRect(0, 0, width, height);
+  return (
+    <div className="relative flex items-center justify-center w-64 h-64">
+      {/* Background Ambient Glow */}
+      <motion.div 
+        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.8, 0.3] }} 
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute w-full h-full bg-[#ff6a00]/20 blur-[60px] rounded-full"
+      />
       
-      for (let i = 0; i < particleCount; i++) {
-        let p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0 || p.x > width) p.vx *= -1;
-        if (p.y < 0 || p.y > height) p.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 106, 0, 0.3)';
-        ctx.fill();
-
-        for (let j = i + 1; j < particleCount; j++) {
-          let p2 = particles[j];
-          let dist = Math.sqrt(Math.pow(p.x - p2.x, 2) + Math.pow(p.y - p2.y, 2));
-          if (dist < connectionDistance) {
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(255, 106, 0, ${0.15 - dist / connectionDistance * 0.15})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        }
+      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_0_15px_rgba(255,106,0,0.8)] z-10">
+        {/* Outer Circuit Traces */}
+        {[
+          "M 5 30 L 20 30", "M 5 50 L 20 50", "M 5 70 L 20 70", // Left
+          "M 95 30 L 80 30", "M 95 50 L 80 50", "M 95 70 L 80 70", // Right
+          "M 30 5 L 30 20", "M 50 5 L 50 20", "M 70 5 L 70 20", // Top
+          "M 30 95 L 30 80", "M 50 95 L 50 80", "M 70 95 L 70 80"  // Bottom
+        ].map((d, i) => (
+          <motion.path key={i} d={d} stroke="#ff6a00" strokeWidth="2" fill="none" strokeLinecap="round" variants={draw} custom={1} initial="hidden" animate="visible" />
+        ))}
         
-        if (!isMobile) { 
-            let mouseDist = Math.sqrt(Math.pow(p.x - mouse.x, 2) + Math.pow(p.y - mouse.y, 2));
-            if (mouseDist < 200) {
-              ctx.beginPath();
-              ctx.moveTo(p.x, p.y);
-              ctx.lineTo(mouse.x, mouse.y);
-              ctx.strokeStyle = `rgba(255, 106, 0, ${0.2 - mouseDist / 200 * 0.2})`;
-              ctx.lineWidth = 1;
-              ctx.stroke();
-            }
-        }
-      }
-      requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    const handleResize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
-    };
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      if (!isMobile) {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseout', handleMouseOut);
-      }
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-50 mix-blend-screen" />;
+        {/* Outer Chip Frame */}
+        <motion.rect x="20" y="20" width="60" height="60" rx="4" stroke="#ff6a00" strokeWidth="2.5" fill="none" variants={draw} custom={3} initial="hidden" animate="visible" />
+        <motion.rect x="24" y="24" width="52" height="52" rx="2" stroke="#ff6a00" strokeWidth="1" strokeDasharray="2 2" fill="none" variants={draw} custom={4} initial="hidden" animate="visible" />
+        
+        {/* Inner Core */}
+        <motion.rect 
+          x="32" y="32" width="36" height="36" rx="3" fill="#ff6a00"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.6, 1] }}
+          transition={{ delay: 2.5, duration: 1.5 }}
+        />
+        
+        {/* SP Text */}
+        <motion.text 
+          x="50" y="55" textAnchor="middle" fill="#050505" fontSize="18" fontWeight="900" fontFamily="sans-serif"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 3, duration: 1 }}
+        >
+          SP
+        </motion.text>
+      </svg>
+    </div>
+  );
 };
 
 
-// --- MAIN APP ---
+// --- MAIN APP ARCHITECTURE ---
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
@@ -145,9 +101,9 @@ export default function App() {
   const audioRef = useRef(null);
   
   const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 1000], [0, 300]); // Parallax effect
+  const heroY = useTransform(scrollY, [0, 1000], [0, 250]); // Parallax effect
 
-  // CURSOR PHYSICS
+  // CURSOR PHYSICS (Optimized for Desktop Only)
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
   const dotX = useSpring(mouseX, { stiffness: 1500, damping: 40 });
@@ -156,6 +112,7 @@ export default function App() {
   const ringY = useSpring(mouseY, { stiffness: 200, damping: 25 });
 
   useEffect(() => {
+    // Check if device has a fine pointer (mouse)
     const mql = window.matchMedia('(pointer: fine)');
     const handleDeviceChange = (e) => setIsDesktop(e.matches);
     setIsDesktop(mql.matches); 
@@ -175,7 +132,8 @@ export default function App() {
   }, [mouseX, mouseY]);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 3000);
+    // 4.5 seconds to let the cinematic chip sequence fully play out
+    setTimeout(() => setLoading(false), 4500); 
   }, []);
 
   const toggleMusic = () => {
@@ -191,7 +149,7 @@ export default function App() {
   return (
     <div className={`bg-[#050505] text-white min-h-screen font-sans overflow-x-hidden selection:bg-[#ff6a00] selection:text-white relative ${isDesktop ? 'cursor-none' : ''}`}>
       
-      {/* CURSOR */}
+      {/* DESKTOP MAGNETIC CURSOR */}
       {isDesktop && (
         <>
           <motion.div 
@@ -205,77 +163,70 @@ export default function App() {
         </>
       )}
 
+      {/* AMBIENT AUDIO TRACK */}
       <audio ref={audioRef} loop src="https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=cinematic-time-lapse-115672.mp3" />
 
-      {/* PRELOADER */}
+      {/* 1. THE PRELOADER SEQUENCE */}
       <AnimatePresence>
         {loading && (
           <motion.div 
-            initial={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 1.5, ease: "easeInOut" } }}
+            initial={{ opacity: 1 }} 
+            exit={{ opacity: 0, scale: 1.5, filter: "blur(20px)" }} 
+            transition={{ duration: 1.5, ease: "easeInOut" }}
             className="fixed inset-0 z-[200] flex items-center justify-center bg-[#050505]"
           >
-            <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.5, 0.2] }} transition={{ repeat: Infinity, duration: 3 }} className="absolute w-64 h-64 bg-[#ff6a00]/20 blur-[100px] rounded-full" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8, filter: "blur(20px)" }} 
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }} 
-              transition={{ duration: 1.5 }}
-              className="text-6xl font-black tracking-widest z-10"
-            >
-              SP<span className="text-[#ff6a00]">.</span>
-            </motion.div>
+            <ChipPreloader />
           </motion.div>
         )}
       </AnimatePresence>
 
       {!loading && (
         <>
-          <NeuralNetwork />
-
           {/* NAVIGATION */}
           <nav className="fixed top-0 left-0 w-full p-6 md:p-10 flex justify-between items-center z-50 pointer-events-none">
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="font-bold text-xl tracking-tighter pointer-events-auto cursor-none">
+            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="font-bold text-xl tracking-tighter pointer-events-auto cursor-none">
               SUJAL<span className="text-[#ff6a00]">.</span>
             </motion.div>
-            <motion.button initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} onClick={toggleMusic} className="pointer-events-auto cursor-none px-4 py-2 glass-card rounded-full hover:bg-white/10 transition flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#ff6a00]">
+            <motion.button initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} onClick={toggleMusic} className="pointer-events-auto cursor-none px-4 py-2 glass-card rounded-full hover:bg-white/10 transition flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#ff6a00]">
               {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
               {isMuted ? 'Sound Off' : 'Sound On'}
             </motion.button>
           </nav>
 
-          {/* 1. UPGRADED HERO SECTION */}
+          {/* 2. THE HERO (CLEVER COPY + FLUID ORBS) */}
           <section className="relative min-h-screen flex items-center justify-center pt-20 px-6 overflow-hidden">
             
             <motion.div style={{ y: heroY }} className="absolute inset-0 z-0 flex items-center justify-center">
-               {/* Slow Pan & Scale Cinematic Image */}
                <motion.img 
                  src={abstractCoreImg}
                  alt="AI Core" 
-                 initial={{ opacity: 0, filter: "blur(40px)", scale: 1.2 }} 
-                 animate={{ opacity: 0.15, filter: "blur(4px)", scale: [1.2, 1.3, 1.2], x: [0, 30, 0], y: [0, -20, 0] }} 
-                 transition={{ opacity: { duration: 4 }, scale: { duration: 40, repeat: Infinity, ease: "linear" }, x: { duration: 40, repeat: Infinity, ease: "linear" }, y: { duration: 40, repeat: Infinity, ease: "linear" } }}
+                 initial={{ opacity: 0, filter: "blur(20px)", scale: 1.1 }} 
+                 animate={{ opacity: 0.15, filter: "blur(4px)", scale: [1.1, 1.2, 1.1], x: [0, 20, 0] }} 
+                 transition={{ opacity: { duration: 3 }, scale: { duration: 30, repeat: Infinity, ease: "linear" }, x: { duration: 30, repeat: Infinity, ease: "linear" } }}
                  className="w-full h-[120%] object-cover mix-blend-screen"
                />
                <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/40 via-[#050505]/80 to-[#050505]"></div>
                
-               {/* Fluid Animated Blur Orbs */}
+               {/* Zero-Lag Fluid CSS Orbs */}
                <motion.div 
-                 animate={{ x: [-100, 100, -100], y: [-50, 50, -50], scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
-                 className="absolute top-1/3 left-1/4 w-[40vw] h-[40vw] bg-[#ff6a00]/20 rounded-full blur-[120px] mix-blend-screen pointer-events-none"
+                 animate={{ x: [-50, 50, -50], y: [-20, 20, -20] }} transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
+                 className="absolute top-1/3 left-1/4 w-[50vw] h-[50vw] bg-[#ff6a00]/15 rounded-full blur-[120px] mix-blend-screen pointer-events-none"
                />
                <motion.div 
-                 animate={{ x: [100, -100, 100], y: [50, -50, 50], scale: [1.2, 1, 1.2] }} transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
-                 className="absolute bottom-1/3 right-1/4 w-[50vw] h-[50vw] bg-yellow-600/10 rounded-full blur-[150px] mix-blend-screen pointer-events-none"
+                 animate={{ x: [50, -50, 50], y: [20, -20, 20] }} transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
+                 className="absolute bottom-1/3 right-1/4 w-[60vw] h-[60vw] bg-yellow-600/10 rounded-full blur-[150px] mix-blend-screen pointer-events-none"
                />
             </motion.div>
 
             <div className="relative z-10 text-center max-w-5xl mt-10">
-               <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="text-[#ff6a00] uppercase tracking-widest text-sm font-bold mb-8">
+               <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="text-[#ff6a00] uppercase tracking-widest text-sm font-bold mb-8">
                  Creative Technologist • AI Enthusiast
                </motion.div>
-               <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter mb-8 leading-none">
+               <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter mb-8 leading-none">
                  BUILDING <br /> THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6a00] to-yellow-500 drop-shadow-[0_0_30px_rgba(255,106,0,0.2)]">FUTURE.</span>
                </motion.h1>
-               <motion.p initial={{ opacity: 0, filter: "blur(10px)" }} animate={{ opacity: 1, filter: "blur(0px)" }} transition={{ delay: 1.3, duration: 1.5 }} className="text-gray-300 text-lg md:text-2xl max-w-3xl mx-auto font-light leading-relaxed">
+               {/* Clever Introduction Copy */}
+               <motion.p initial={{ opacity: 0, filter: "blur(10px)" }} animate={{ opacity: 1, filter: "blur(0px)" }} transition={{ delay: 0.9, duration: 1.5 }} className="text-gray-300 text-lg md:text-2xl max-w-3xl mx-auto font-light leading-relaxed">
                  I am Sujal Patel. A creative technologist and AI architect based in London. I don't just write code—I engineer intelligent digital ecosystems. <span className="text-white font-semibold">Welcome to my operational cortex.</span>
                </motion.p>
             </div>
@@ -283,7 +234,7 @@ export default function App() {
 
           <div className="max-w-7xl mx-auto px-6 space-y-40 pb-40 relative z-10">
             
-            {/* 2. THE MINDSET SECTION */}
+            {/* 3. THE MINDSET SECTION */}
             <section className="pt-20 relative">
               <motion.img 
                 src={mindsetBg}
@@ -303,7 +254,7 @@ export default function App() {
               </TiltCard>
             </section>
 
-            {/* 3. TECHNICAL ARSENAL */}
+            {/* 4. TECHNICAL ARSENAL */}
             <section>
                <h2 className="text-3xl font-bold mb-12 flex items-center gap-4"><Code className="text-[#ff6a00]" /> Technical Arsenal</h2>
                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -322,7 +273,7 @@ export default function App() {
                </div>
             </section>
 
-            {/* 4. SELECTED WORKS */}
+            {/* 5. SELECTED WORKS */}
             <section className="relative">
               <motion.img 
                 src={worksBg}
@@ -351,7 +302,7 @@ export default function App() {
               </div>
             </section>
 
-            {/* 5. EXPERIENCE */}
+            {/* 6. EXPERIENCE */}
             <section>
               <h2 className="text-3xl font-bold mb-12 flex items-center gap-4"><Terminal className="text-[#ff6a00]" /> Operational Experience</h2>
               <div className="space-y-6">
@@ -370,7 +321,7 @@ export default function App() {
               </div>
             </section>
 
-            {/* 6. STATS & CERTIFICATIONS */}
+            {/* 7. STATS */}
             <section className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                {[
                  { num: "3+", label: "AI/ML Certifications" },
@@ -387,7 +338,7 @@ export default function App() {
                ))}
             </section>
 
-            {/* 7. CONTACT SECTION */}
+            {/* 8. CONTACT */}
             <section className="text-center pt-20 relative">
                <motion.img 
                 src={contactBg}
