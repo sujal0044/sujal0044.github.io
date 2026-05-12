@@ -2,12 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { Github, Instagram, Volume2, VolumeX, Mail, Code, Terminal, Layers, ExternalLink } from 'lucide-react';
 
-// --- 1. 3D TILT WRAPPER ---
+// --- 1. OPTIMIZED UTILITIES & 3D INTERACTIVITY ---
+
+// Production-ready cinematic images (abstract/tech only)
+const abstractCoreImg = "https://images.unsplash.com/photo-1614729939124-03290b56c9ce?q=80&w=2500&auto=format&fit=crop";
+const mindsetBg = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2000&auto=format&fit=crop";
+const worksBg = "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2000&auto=format&fit=crop";
+const contactBg = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop";
+
+// --- 3D TILT WRAPPER COMPONENT ---
 const TiltCard = ({ children, className }) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const rotateX = useTransform(y, [-100, 100], [7, -7]);
-  const rotateY = useTransform(x, [-100, 100], [-7, 7]);
+  // Reduced angle for extreme professional luxury
+  const rotateX = useTransform(y, [-100, 100], [6, -6]); 
+  const rotateY = useTransform(x, [-100, 100], [-6, 6]);
 
   function handleMouse(event) {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -29,7 +38,8 @@ const TiltCard = ({ children, className }) => {
   );
 };
 
-// --- 2. INTERACTIVE NEURAL NETWORK BACKGROUND ---
+// --- OPTIMIZED NEURAL NETWORK CANVAS BACKGROUND ---
+// Performance optimized: reduced particle count on mobile screens.
 const NeuralNetwork = () => {
   const canvasRef = useRef(null);
 
@@ -42,7 +52,9 @@ const NeuralNetwork = () => {
     canvas.height = height;
 
     let particles = [];
-    const particleCount = 70;
+    // Mobile Performance Check
+    const isMobile = width < 768;
+    const particleCount = isMobile ? 20 : 70; // Crucial Performance Fix
     const connectionDistance = 150;
     let mouse = { x: -1000, y: -1000 };
 
@@ -58,8 +70,10 @@ const NeuralNetwork = () => {
 
     const handleMouseMove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
     const handleMouseOut = () => { mouse.x = -1000; mouse.y = -1000; };
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseout', handleMouseOut);
+    if (!isMobile) { // Disable mouse connection logic on mobile to save performance
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseout', handleMouseOut);
+    }
 
     const animate = () => {
       ctx.clearRect(0, 0, width, height);
@@ -89,15 +103,18 @@ const NeuralNetwork = () => {
             ctx.stroke();
           }
         }
-
-        let mouseDist = Math.sqrt(Math.pow(p.x - mouse.x, 2) + Math.pow(p.y - mouse.y, 2));
-        if (mouseDist < 200) {
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(mouse.x, mouse.y);
-          ctx.strokeStyle = `rgba(255, 106, 0, ${0.2 - mouseDist / 200 * 0.2})`;
-          ctx.lineWidth = 1;
-          ctx.stroke();
+        
+        // Mouse connection logic disabled on mobile
+        if (!isMobile) { 
+            let mouseDist = Math.sqrt(Math.pow(p.x - mouse.x, 2) + Math.pow(p.y - mouse.y, 2));
+            if (mouseDist < 200) {
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(mouse.x, mouse.y);
+              ctx.strokeStyle = `rgba(255, 106, 0, ${0.2 - mouseDist / 200 * 0.2})`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
         }
       }
       requestAnimationFrame(animate);
@@ -114,8 +131,10 @@ const NeuralNetwork = () => {
     window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseout', handleMouseOut);
+      if (!isMobile) {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseout', handleMouseOut);
+      }
       window.removeEventListener('resize', handleResize);
     };
   }, []);
@@ -128,23 +147,42 @@ const NeuralNetwork = () => {
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(true);
   const audioRef = useRef(null);
 
-  // UPGRADED PROFESSIONAL CURSOR
+  // --- UPGRADED MAGNETIC CURSOR PHYSICS ---
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
+  // Super-fast spring for the tiny dot core
   const dotX = useSpring(mouseX, { stiffness: 1500, damping: 40 });
   const dotY = useSpring(mouseY, { stiffness: 1500, damping: 40 });
+  // Slower, smooth trailing spring for the outer ring
   const ringX = useSpring(mouseX, { stiffness: 200, damping: 25 });
   const ringY = useSpring(mouseY, { stiffness: 200, damping: 25 });
 
   useEffect(() => {
+    // Determine if on desktop/pointer device for custom cursor
+    const mql = window.matchMedia('(pointer: fine)');
+    const handleDeviceChange = (e) => setIsDesktop(e.matches);
+    setIsDesktop(mql.matches); // initial check
+    mql.addEventListener('change', handleDeviceChange);
+    
+    // Mouse movement logic (disabled on mobile)
     const handleMouseMove = (e) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    
+    if (mql.matches) {
+       window.addEventListener('mousemove', handleMouseMove);
+    }
+    
+    return () => {
+      mql.removeEventListener('change', handleDeviceChange);
+      if (mql.matches) {
+        window.removeEventListener('mousemove', handleMouseMove);
+      }
+    };
   }, [mouseX, mouseY]);
 
   useEffect(() => {
@@ -162,21 +200,25 @@ export default function App() {
   };
 
   return (
-    <div className="bg-[#050505] text-white min-h-screen font-sans overflow-x-hidden selection:bg-[#ff6a00] selection:text-white relative">
+    <div className={`bg-[#050505] text-white min-h-screen font-sans overflow-x-hidden selection:bg-[#ff6a00] selection:text-white relative ${isDesktop ? 'cursor-none' : ''}`}>
       
-      {/* PROFESSIONAL CURSOR */}
-      <motion.div 
-        className="fixed top-0 left-0 w-[6px] h-[6px] bg-white rounded-full pointer-events-none z-[999] -translate-x-1/2 -translate-y-1/2 mix-blend-difference"
-        style={{ x: dotX, y: dotY }}
-      />
-      <motion.div 
-        className="fixed top-0 left-0 w-10 h-10 border border-[#ff6a00]/40 rounded-full pointer-events-none z-[998] -translate-x-1/2 -translate-y-1/2 transition-transform duration-100"
-        style={{ x: ringX, y: ringY }}
-      />
+      {/* 1. PROFESSIONAL CURSOR (DESKTOP ONLY) */}
+      {isDesktop && (
+        <>
+          <motion.div 
+            className="fixed top-0 left-0 w-[6px] h-[6px] bg-white rounded-full pointer-events-none z-[999] -translate-x-1/2 -translate-y-1/2 mix-blend-difference"
+            style={{ x: dotX, y: dotY }}
+          />
+          <motion.div 
+            className="fixed top-0 left-0 w-10 h-10 border border-[#ff6a00]/40 rounded-full pointer-events-none z-[998] -translate-x-1/2 -translate-y-1/2 transition-transform duration-100"
+            style={{ x: ringX, y: ringY }}
+          />
+        </>
+      )}
 
       <audio ref={audioRef} loop src="https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=cinematic-time-lapse-115672.mp3" />
 
-      {/* PRELOADER */}
+      {/* 2. PRELOADER */}
       <AnimatePresence>
         {loading && (
           <motion.div 
@@ -200,7 +242,7 @@ export default function App() {
         <>
           <NeuralNetwork />
 
-          {/* NAVIGATION */}
+          {/* 3. NAVIGATION */}
           <nav className="fixed top-0 left-0 w-full p-6 md:p-10 flex justify-between items-center z-50 pointer-events-none">
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="font-bold text-xl tracking-tighter pointer-events-auto cursor-none">
               SUJAL<span className="text-[#ff6a00]">.</span>
@@ -211,11 +253,11 @@ export default function App() {
             </motion.button>
           </nav>
 
-          {/* 1. HERO SECTION */}
+          {/* 4. HERO SECTION */}
           <section className="relative min-h-screen flex items-center justify-center pt-20 px-6 overflow-hidden">
             <div className="absolute inset-0 z-0 flex items-center justify-center">
                <motion.img 
-                 src="https://images.unsplash.com/photo-1614729939124-03290b56c9ce?q=80&w=2500&auto=format&fit=crop" 
+                 src={abstractCoreImg}
                  alt="AI Core" 
                  initial={{ opacity: 0, filter: "blur(40px)", scale: 1.2 }} animate={{ opacity: 0.15, filter: "blur(8px)", scale: 1 }} transition={{ duration: 4, ease: "easeOut" }}
                  className="w-full h-full object-cover mix-blend-screen"
@@ -238,11 +280,11 @@ export default function App() {
 
           <div className="max-w-7xl mx-auto px-6 space-y-40 pb-40 relative z-10">
             
-            {/* 2. UPGRADED MINDSET SECTION */}
+            {/* 5. UPGRADED MINDSET SECTION */}
             <section className="pt-20 relative">
-              {/* Scroll Revealed Background Image */}
+              {/* Scroll Revealed Background Image (Unblur Parallax) */}
               <motion.img 
-                src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2000&auto=format&fit=crop"
+                src={mindsetBg}
                 initial={{ opacity: 0, filter: "blur(20px)" }} whileInView={{ opacity: 0.08, filter: "blur(5px)" }} transition={{ duration: 2 }} viewport={{ once: false, margin: "-100px" }}
                 className="absolute inset-0 w-full h-full object-cover -z-10 mix-blend-screen rounded-3xl"
               />
@@ -259,7 +301,7 @@ export default function App() {
               </TiltCard>
             </section>
 
-            {/* 3. TECHNICAL ARSENAL */}
+            {/* 6. TECHNICAL ARSENAL */}
             <section>
                <h2 className="text-3xl font-bold mb-12 flex items-center gap-4"><Code className="text-[#ff6a00]" /> Technical Arsenal</h2>
                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -278,11 +320,11 @@ export default function App() {
                </div>
             </section>
 
-            {/* 4. SELECTED WORKS / PROJECTS */}
+            {/* 7. SELECTED WORKS / PROJECTS (Specific names) */}
             <section className="relative">
-              {/* Scroll Revealed Background Image */}
+              {/* Scroll Revealed Background Image (Unblur Parallax) */}
               <motion.img 
-                src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2000&auto=format&fit=crop"
+                src={worksBg}
                 initial={{ opacity: 0, filter: "blur(20px)" }} whileInView={{ opacity: 0.05, filter: "blur(3px)" }} transition={{ duration: 2 }} viewport={{ once: false }}
                 className="absolute inset-0 w-full h-full object-cover -z-10 mix-blend-screen rounded-3xl"
               />
@@ -308,13 +350,13 @@ export default function App() {
               </div>
             </section>
 
-            {/* 5. EXPERIENCE */}
+            {/* 8. OPERATIONAL EXPERIENCE */}
             <section>
               <h2 className="text-3xl font-bold mb-12 flex items-center gap-4"><Terminal className="text-[#ff6a00]" /> Operational Experience</h2>
               <div className="space-y-6">
                 {[
-                  { role: "Frontend Developer Intern", company: "TechNova Solutions", year: "2024 - Present", desc: "Engineered scalable React architectures, implemented global state management, and optimized UI rendering performance metrics by 40%." },
-                  { role: "Freelance Creative Developer", company: "Independent", year: "2023 - 2024", desc: "Architected modern web experiences, integrating headless CMS, secure Firebase authentication, and cinematic GSAP/Framer animations." }
+                  { role: "Frontend Developer Intern", company: "TechNova Solutions", year: "2024 - Present", desc: "Engineered scalable React architectures, implemented global state management, and optimized UI rendering performance metrics." },
+                  { role: "Freelance Creative Developer", company: "Independent", year: "2023 - 2024", desc: "Architected modern web experiences, integrating headless CMS, secure Firebase authentication, and cinematic Framer/GSAP animations." }
                 ].map((exp, i) => (
                   <motion.div key={i} whileHover={{ x: 10 }} className="glass-card p-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center group cursor-none border border-white/5 hover:border-[#ff6a00]/30 transition-all">
                      <div className="max-w-2xl">
@@ -327,11 +369,28 @@ export default function App() {
               </div>
             </section>
 
-            {/* 6. UPGRADED CONTACT SECTION */}
+            {/* 9. STATS & CERTIFICATIONS */}
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+               {[
+                 { num: "3+", label: "AI/ML Certifications" },
+                 { num: "50+", label: "Projects Deployed" },
+                 { num: "2026", label: "Master's Graduation" },
+                 { num: "100%", label: "Calm Under Pressure" }
+               ].map((stat, i) => (
+                 <TiltCard key={i}>
+                   <div className="glass-card p-8 rounded-2xl cursor-none hover:bg-white/5 transition-colors">
+                     <div className="text-4xl md:text-5xl font-black text-[#ff6a00] mb-2">{stat.num}</div>
+                     <div className="text-xs text-gray-400 uppercase tracking-widest">{stat.label}</div>
+                   </div>
+                 </TiltCard>
+               ))}
+            </section>
+
+            {/* 10. UPGRADED CONTACT SECTION (The Digital Portal) */}
             <section className="text-center pt-20 relative">
-               {/* Scroll Revealed Contact Background */}
+               {/* Scroll Revealed Contact Background (Unblur Parallax) */}
                <motion.img 
-                src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop"
+                src={contactBg}
                 initial={{ opacity: 0, filter: "blur(30px)" }} whileInView={{ opacity: 0.15, filter: "blur(0px)" }} transition={{ duration: 3 }} viewport={{ once: false }}
                 className="absolute inset-0 w-full h-full object-cover -z-10 mix-blend-screen rounded-[4rem]"
                />
