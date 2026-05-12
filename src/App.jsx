@@ -1,235 +1,205 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
-import { Dribbble, Github, Instagram, Volume2 } from 'lucide-react';
+import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
+import { Github, Instagram, Volume2, VolumeX, Mail, ExternalLink, Code, Award, Terminal } from 'lucide-react';
+// Importing your exact uploaded image
+import heroImg from '../sujal.jpg';
+
+// --- 3D INTERACTIVE WRAPPER COMPONENT ---
+// This makes any card tilt and rotate tracking the user's mouse
+const TiltCard = ({ children, className }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateX = useTransform(y, [-100, 100], [10, -10]);
+  const rotateY = useTransform(x, [-100, 100], [-10, 10]);
+
+  function handleMouse(event) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    x.set(event.clientX - rect.left - rect.width / 2);
+    y.set(event.clientY - rect.top - rect.height / 2);
+  }
+
+  return (
+    <motion.div
+      style={{ perspective: 1200 }}
+      onMouseMove={handleMouse}
+      onMouseLeave={() => { x.set(0); y.set(0); }}
+      className={className}
+    >
+      <motion.div style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className="w-full h-full">
+        {children}
+      </motion.div>
+    </motion.div>
+  );
+};
 
 export default function App() {
   const [loading, setLoading] = useState(true);
-  const cursorRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const audioRef = useRef(null);
 
-  // Custom Cursor Spring Animation
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const cursorSpringX = useSpring(mouseX, { stiffness: 400, damping: 30 });
-  const cursorSpringY = useSpring(mouseY, { stiffness: 400, damping: 30 });
-
+  // Cinematic load
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      mouseX.set(e.clientX - 10);
-      mouseY.set(e.clientY - 10);
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [mouseX, mouseY]);
-
-  // Loading animation simulation for preloader
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 3000);
+    setTimeout(() => setLoading(false), 2800);
   }, []);
 
-  // Text skew animation variants
-  const textVariants = {
-    initial: { skewY: -10, y: 100, opacity: 0 },
-    animate: { skewY: 0, y: 0, opacity: 1 },
-    transition: { duration: 1.5, ease: [0.76, 0, 0.24, 1], delay: 0.2 }
+  const toggleMusic = () => {
+    if (isMuted) {
+      audioRef.current.play();
+      audioRef.current.volume = 0.3;
+    } else {
+      audioRef.current.pause();
+    }
+    setIsMuted(!isMuted);
   };
 
   return (
-    <div className="relative min-h-screen font-display selection:bg-[#ff6a00] selection:text-white overflow-x-hidden">
+    <div className="bg-[#050505] text-white min-h-screen font-sans overflow-x-hidden selection:bg-[#ff6a00] selection:text-white">
       
-      {/* 1. Custom Interactive Cursor */}
-      <motion.div
-        className="fixed w-5 h-5 bg-[#ff6a00] rounded-full pointer-events-none z-[100] blur-[1px] shadow-[0_0_20px_4px_#ff6a00]"
-        style={{ left: cursorSpringX, top: cursorSpringY }}
-        ref={cursorRef}
-      />
+      {/* Audio Player (Cinematic Ambient Track) */}
+      <audio ref={audioRef} loop src="https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=cinematic-time-lapse-115672.mp3" />
 
-      {/* 2. Preloader (like in the video with single Start button) */}
-      {loading && (
-        <motion.div 
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 1 } }}
-          className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-dark"
-        >
-          <div className="relative flex items-center justify-center">
-            {/* Minimal SP initials loader */}
-            <motion.h1 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.5 }}
-              className="text-5xl font-display font-bold tracking-widest text-white"
-            >
+      {/* 1. PRELOADER */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div 
+            initial={{ opacity: 1 }} exit={{ opacity: 0, y: -1000 }} transition={{ duration: 1, ease: "easeInOut" }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-[#050505]"
+          >
+            <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute w-64 h-64 bg-[#ff6a00]/20 blur-[100px] rounded-full" />
+            <motion.h1 initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-6xl font-bold tracking-widest z-10">
               SP<span className="text-[#ff6a00]">.</span>
             </motion.h1>
-          </div>
-          
-          <motion.button 
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ duration: 0.8, delay: 1.5 }}
-             onClick={() => setLoading(false)}
-             className="mt-12 px-10 py-3 bg-white text-black font-bold rounded-full uppercase tracking-widest text-xs hover:bg-[#ff6a00] hover:text-white transition-colors duration-300"
-          >
-            Start Experience
-          </motion.button>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* 3. Main Site Container */}
       {!loading && (
-        <div className="relative w-full h-full">
-
-          {/* 4. Cinematic Fixed Video Background (like Minh Pham) */}
-          <video 
-            autoPlay 
-            loop 
-            muted 
-            playsInline 
-            className="fixed inset-0 w-full h-full object-cover grayscale opacity-[0.15] -z-20 pointer-events-none"
-          >
-            {/* If you have your cinematic-sujal.mp4 file on your GitHub, use this line. 
-               Until then, this placeholder is a placeholder. A black and white moody texture loop. */}
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-background-of-a-person-meditating-and-connecting-with-nature-50024-preview.mp4" type="video/mp4" />
-          </video>
-          
-          {/* Noise texture overlay */}
-          <div className="pointer-events-none fixed inset-0 z-50 h-full w-full opacity-[0.03]" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/dark-noise.png")' }}></div>
-
-          {/* 5. Minimal Global Navigation */}
-          <nav className="fixed top-0 left-0 w-full p-6 md:p-10 flex justify-between items-center z-50">
-             <a href="/" className="text-xl font-bold tracking-tighter">SP<span className="text-[#ff6a00]">.</span></a>
-             <div className="flex items-center gap-6 text-sm text-gray-300 uppercase tracking-widest">
-               <a href="#about" className="hover:text-white transition-colors">About</a>
-               <a href="#projects" className="hover:text-white transition-colors">Work</a>
-               <a href="#contact" className="hover:text-white transition-colors">Contact</a>
-             </div>
+        <>
+          {/* NAVIGATION & MUSIC TOGGLE */}
+          <nav className="fixed top-0 left-0 w-full p-8 flex justify-between items-center z-50 pointer-events-none">
+            <div className="font-bold text-xl tracking-tighter pointer-events-auto">SUJAL<span className="text-[#ff6a00]">.</span></div>
+            <button onClick={toggleMusic} className="pointer-events-auto p-3 glass-card rounded-full hover:bg-white/10 transition flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#ff6a00]">
+              {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              {isMuted ? 'Sound Off' : 'Sound On'}
+            </button>
           </nav>
-          
-          {/* Bottom Indicators */}
-          <div className="fixed bottom-0 left-0 w-full p-6 md:p-10 flex justify-between items-center z-50">
-            {/* Social Icons (Generic placeholder brands like Dribbble, etc.) */}
-            <div className="flex gap-5 text-gray-500">
-               <a href="https://instagram.com/_sujal.0044" target="_blank" rel="noreferrer" className="hover:text-[#ff6a00] transition-all"><Instagram size={18} /></a>
-               <a href="#" className="hover:text-[#ff6a00] transition-all"><Dribbble size={18} /></a>
-               <a href="https://sujal0044.github.io" target="_blank" rel="noreferrer" className="hover:text-[#ff6a00] transition-all"><Github size={18} /></a>
-            </div>
-            
-            {/* Sound Toggle */}
-            <div className="flex items-center gap-3 text-xs text-gray-500 uppercase tracking-widest">
-              <Volume2 size={16} />
-              <span>Sound On</span>
-            </div>
-          </div>
 
-          {/* 6. Cinematic Hero Section (Replicating MINH PHAM design) */}
-          <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-32">
-            
-            {/* User deletion requirement is met here */}
-            
-            <motion.p 
-              variants={textVariants} initial="initial" animate="animate"
-              transition={{ delay: 0.2 }}
-              className="text-gray-300 tracking-widest uppercase text-xs md:text-sm font-semibold mb-6"
-            >
-              SUJAL PATEL
-            </motion.p>
-            
-            <div className="relative z-10 space-y-4">
-              {[ "MAKING", "GOOD", "SHIT", "SINCE", "2026"].map((text, index) => (
-                <motion.div 
-                  key={index}
-                  variants={textVariants} initial="initial" animate="animate"
-                  transition={{ delay: 0.4 + (index * 0.1) }}
-                  className="overflow-hidden h-[8vh] md:h-[12vh]"
-                >
-                  <h1 
-                    className={`text-6xl md:text-9xl font-bold tracking-tighter leading-none ${index === 1 ? 'text-[#ff6a00] font-bold' : ''}`}
-                  >
-                    {text}
-                  }
-                  </h1>
-                </motion.div>
-              ))}
+          {/* 2. HERO SECTION */}
+          <section className="relative min-h-screen flex items-center justify-center pt-20 px-6">
+            <div className="absolute inset-0 z-0">
+               {/* Your Cinematic Photo with Filters applied */}
+               <img src={heroImg} alt="Sujal Patel" className="w-full h-full object-cover opacity-40 filter grayscale hover:grayscale-0 transition-all duration-1000" />
+               <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/80 via-[#050505]/90 to-[#050505]"></div>
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] md:w-[40vw] md:h-[40vw] bg-[#ff6a00]/20 rounded-full blur-[150px] mix-blend-screen pointer-events-none"></div>
+            </div>
+
+            <div className="relative z-10 text-center max-w-5xl">
+               <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-[#ff6a00] uppercase tracking-widest text-sm font-bold mb-6">
+                 Creative Technologist
+               </motion.div>
+               <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-none">
+                 BUILDING <br /> THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6a00] to-yellow-500">FUTURE.</span>
+               </motion.h1>
+               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed">
+                 Sujal Patel is a modern creative developer and technology enthusiast currently pursuing a Master’s degree in Computer Science in London. Blending development, AI, motion, and modern UI design into meaningful products.
+               </motion.p>
             </div>
           </section>
 
-          {/* 7. Redesigned About Me Section */}
-          <section id="about" className="px-6 py-40 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-20">
-            <motion.div 
-               initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 1 }}
-               className="w-full md:w-[40%] flex flex-col items-center"
-            >
-              <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden glass-card">
-                  <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="About Sujal" className="w-full h-full object-cover filter grayscale" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10"></div>
-              </div>
-            </motion.div>
+          <div className="max-w-7xl mx-auto px-6 space-y-40 pb-40">
             
-            <motion.div 
-              initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 1, delay: 0.2 }}
-              className="w-full md:w-[60%]"
-            >
-              <h2 className="text-gray-500 uppercase tracking-widest text-sm mb-6">About Me</h2>
+            {/* 3. ABOUT SECTION (3D Interaction) */}
+            <section id="about" className="pt-20">
+              <TiltCard>
+                <div className="glass-card p-12 md:p-20 rounded-3xl relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-[#ff6a00]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <h2 className="text-3xl md:text-5xl font-bold mb-8">The Mindset.</h2>
+                  <div className="grid md:grid-cols-2 gap-12 text-gray-400 text-lg leading-relaxed">
+                    <p>I am an ambitious international student, bridging my roots in India to the tech landscape of London. Beyond the code, I am a disciplined reader of psychology and self-growth literature.</p>
+                    <p>This perspective allows me to remain exceptionally calm under pressure. Whether debugging complex machine learning algorithms or deploying full-stack architectures, I adapt and build with precision.</p>
+                  </div>
+                </div>
+              </TiltCard>
+            </section>
+
+            {/* 4. SKILLS SECTION */}
+            <section>
+               <h2 className="text-3xl font-bold mb-12 flex items-center gap-4"><Code className="text-[#ff6a00]" /> Technical Arsenal</h2>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 {[
+                   { title: "Frontend & UI", skills: "React.js • Next.js • Tailwind CSS • Framer Motion • Three.js" },
+                   { title: "Backend & Cloud", skills: "Node.js • Python • Firebase • AWS Architecture" },
+                   { title: "AI & Creative", skills: "Machine Learning • Deep Learning • Motion Graphics • Branding" }
+                 ].map((box, i) => (
+                   <TiltCard key={i} className="h-full">
+                     <div className="glass-card p-10 rounded-2xl h-full border-t border-white/5 hover:border-[#ff6a00]/50 transition-colors">
+                       <h3 className="text-xl font-bold mb-4 text-white">{box.title}</h3>
+                       <p className="text-[#ff6a00] font-mono text-sm leading-loose">{box.skills}</p>
+                     </div>
+                   </TiltCard>
+                 ))}
+               </div>
+            </section>
+
+            {/* 5. EXPERIENCE & PROJECTS */}
+            <section>
+              <h2 className="text-3xl font-bold mb-12 flex items-center gap-4"><Terminal className="text-[#ff6a00]" /> Featured Work & Experience</h2>
               <div className="space-y-6">
                 {[
-                  "I'm a modern creative developer with strong focus",
-                  "on producing high quality & impactful digital experience.",
-                  "Beyond code, I adapt calmly under pressure and am a ",
-                  "disciplined reader of psychology and self-growth.",
-                ].map((line, index) => (
-                  <motion.p 
-                     key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 + 0.3 }}
-                     className="text-xl md:text-3xl text-gray-300 leading-tight tracking-tight flex items-center gap-4"
-                  >
-                     {line}
-                     {/* Red Circle Overlays from the reference video */}
-                     {(index === 1 || index === 2 || index === 3) && <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="w-4 h-4 rounded-full bg-[#ff6a00]/80"></motion.span>}
-                  </motion.p>
+                  { role: "Frontend Developer Intern", company: "TechNova Solutions", year: "2024", desc: "Built responsive React web apps and improved UI performance metrics." },
+                  { role: "Freelance Creative Developer", company: "Independent", year: "2023", desc: "Developed cinematic portfolio platforms and AI productivity assistants." }
+                ].map((exp, i) => (
+                  <motion.div key={i} whileHover={{ x: 20 }} className="glass-card p-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center group cursor-pointer">
+                     <div>
+                       <h3 className="text-2xl font-bold group-hover:text-[#ff6a00] transition-colors">{exp.role}</h3>
+                       <p className="text-gray-500 mt-2">{exp.company} • {exp.desc}</p>
+                     </div>
+                     <div className="text-gray-600 font-mono mt-4 md:mt-0">{exp.year}</div>
+                  </motion.div>
                 ))}
               </div>
-            </motion.div>
-          </section>
+            </section>
 
-          {/* 8. Clients/Experience list (Generic placeholder list of top brands for premium Fresherness) */}
-          <section id="experience" className="px-6 py-32 max-w-7xl mx-auto flex flex-col items-center">
-             <motion.h2 
-               initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-               className="text-center text-4xl md:text-6xl font-bold tracking-tight mb-20"
-             >
-                Built digital for
-             </motion.h2>
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-x-16 md:gap-y-12">
-               {[ "FORD", "UFC", "LINCOLN", "ROYAL CARIBBEAN", "SLEEPIQ", "NFL", "VERCEL", "NETLIFY"].map((brand, i) => (
-                 <motion.div 
-                   key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 + 0.2 }}
-                   className="text-center font-display text-2xl md:text-3xl text-gray-500 hover:text-white transition-colors duration-300 flex items-center justify-center gap-3"
-                 >
-                     <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2, delay: i * 0.1 }} className="w-2 h-2 rounded-full bg-[#ff6a00]/50"></motion.span>
-                     {brand}
-                 </motion.div>
+            {/* 6. STATS & CERTIFICATIONS */}
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+               {[
+                 { num: "3+", label: "AI/ML Certifications" },
+                 { num: "50+", label: "Projects Completed" },
+                 { num: "2026", label: "Master's Graduation" },
+                 { num: "100%", label: "Calm Under Pressure" }
+               ].map((stat, i) => (
+                 <TiltCard key={i}>
+                   <div className="glass-card p-8 rounded-2xl">
+                     <div className="text-4xl md:text-5xl font-black text-[#ff6a00] mb-2">{stat.num}</div>
+                     <div className="text-xs text-gray-400 uppercase tracking-widest">{stat.label}</div>
+                   </div>
+                 </TiltCard>
                ))}
-             </div>
-          </section>
+            </section>
 
-          {/* 9. Contact Section with cinematic 'Send Button' layout */}
-          <section id="contact" className="px-6 py-40 max-w-7xl mx-auto text-center flex flex-col items-center">
-            <motion.h2 
-                initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                className="text-4xl md:text-7xl font-bold tracking-tighter mb-20"
-            >
-                Let's Build the Future.
-            </motion.h2>
-            
-            <a href="mailto:sa.tech080044@gmail.com" className="group flex items-center justify-center gap-3 text-lg md:text-2xl text-white font-bold tracking-tight p-6 border border-white/10 rounded-full hover:border-[#ff6a00] transition-all duration-300 glass-card">
-              sa.tech080044@gmail.com
-              <motion.span animate={{ x: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.5 }} className="text-[#ff6a00]">→</motion.span>
-            </a>
-          </section>
-          
-          <footer className="text-center py-10 text-xs text-gray-700 uppercase tracking-widest">
-            Sujal Patel — All rights reserved
-          </footer>
+            {/* 7. CONTACT SECTION */}
+            <section className="text-center pt-20">
+               <TiltCard>
+                 <div className="glass-card p-16 md:p-24 rounded-[3rem] relative overflow-hidden">
+                   <div className="absolute inset-0 bg-gradient-to-t from-[#ff6a00]/20 to-transparent opacity-50" />
+                   <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-8 relative z-10">READY TO <br/>INNOVATE?</h2>
+                   <a href="mailto:sa.tech080044@gmail.com" className="relative z-10 inline-flex items-center gap-3 px-10 py-5 bg-white text-black font-bold rounded-full hover:bg-[#ff6a00] hover:text-white hover:scale-105 transition-all duration-300">
+                     <Mail size={20} /> sa.tech080044@gmail.com
+                   </a>
+                 </div>
+               </TiltCard>
+               
+               <div className="flex justify-center gap-8 mt-16 text-gray-500">
+                 <a href="https://instagram.com/_sujal.0044" className="hover:text-[#ff6a00] transition-colors"><Instagram size={24} /></a>
+                 <a href="https://sujal0044.github.io" className="hover:text-[#ff6a00] transition-colors"><Github size={24} /></a>
+               </div>
+               <div className="mt-10 text-xs text-gray-700 uppercase tracking-widest">
+                 Sujal Patel — Building the Future Through Creativity & Code
+               </div>
+            </section>
 
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
